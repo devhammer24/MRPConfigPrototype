@@ -1,0 +1,31 @@
+# Maven / Gradle build folders
+target/
+build/
+
+# Logs
+*.log
+*.out
+*.err
+
+# Compiled class files
+*.class
+
+# Package files
+*.jar
+*.war
+*.ear
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# VS Code
+.vscode/
+
+# OS system files
+.DS_Store
+Thumbs.db
+desktop.ini
