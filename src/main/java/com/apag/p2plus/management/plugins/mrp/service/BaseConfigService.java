@@ -1,6 +1,4 @@
 package com.apag.p2plus.management.plugins.mrp.service;
-
-import com.apag.p2plus.management.plugins.mrp.api.MRPConfigClient;
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.core.MediaType;

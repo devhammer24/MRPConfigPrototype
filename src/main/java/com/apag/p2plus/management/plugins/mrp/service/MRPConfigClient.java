@@ -1,4 +1,4 @@
-package com.apag.p2plus.management.plugins.mrp.api;
+package com.apag.p2plus.management.plugins.mrp.service;
 
 import com.apag.p2plus.management.plugins.mrp.model.ConfigItem;
 import com.apag.p2plus.management.plugins.mrp.model.Scenario;
