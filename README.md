@@ -17,20 +17,22 @@ This application provides a graphical user interface for managing MRP configurat
 - **Java Version**: 17
 - **Build Tool**: Maven
 - **GUI Framework**: Swing
-- **HTTP Client**: Apache HttpClient 5
+- **REST Client**: RESTEasy (JAX-RS Client Implementation)
 - **JSON Processing**: Jackson
-- **Architecture**: Service-oriented with Base Class inheritance
+- **Architecture**: Service-oriented with JAX-RS Client Proxy Pattern
 
 ## Project Structure
 
 ```
 src/main/java/com/apag/p2plus/management/plugins/mrp/
 ├── MRPConfigApplication.java         # Main application class
+├── api/
+│   └── MRPConfigClient.java         # JAX-RS Client Interface for REST API calls
 ├── model/
 │   ├── Scenario.java                # Data model for scenarios
 │   └── ConfigItem.java              # Data model for configuration items
 ├── service/
-│   ├── BaseConfigService.java       # Abstract base service with common HTTP functionality
+│   ├── BaseConfigService.java       # Abstract base service with RESTEasy client infrastructure
 │   ├── ScenarioService.java         # Service for scenario management
 │   ├── TechnicalConfigService.java  # Service for technical configuration
 │   └── OperationalConfigService.java# Service for operational configuration
@@ -44,6 +46,13 @@ src/main/java/com/apag/p2plus/management/plugins/mrp/
 
 - Java 17 or higher
 - Maven 3.6+
+
+### Key Dependencies
+
+- **RESTEasy Client**: JAX-RS client implementation
+- **Jackson**: JSON serialization/deserialization
+- **Jakarta WS-RS API**: JAX-RS standard annotations
+- **Swing**: GUI framework (part of JDK)
 
 ### Build Project
 
@@ -156,9 +165,10 @@ If any REST API is not available, example configurations are automatically loade
 
 ### Service Layer Architecture
 
-The application uses a clean service-oriented architecture:
+The application uses a modern JAX-RS client-based architecture:
 
-- **BaseConfigService<T>**: Abstract base class providing common HTTP functionality and generic configuration loading
+- **MRPConfigClient**: JAX-RS interface defining all REST API endpoints with annotations
+- **BaseConfigService<T>**: Abstract base class providing RESTEasy client infrastructure and generic configuration loading
 - **ScenarioService**: Extends BaseConfigService for scenario management
 - **TechnicalConfigService**: Extends BaseConfigService for technical configuration
 - **OperationalConfigService**: Extends BaseConfigService for operational configuration
@@ -166,21 +176,23 @@ The application uses a clean service-oriented architecture:
 ### Benefits
 
 - **Separation of Concerns**: Each service has a single responsibility
-- **DRY Principle**: Common functionality in base class
-- **Type Safety**: Generic typing for better compile-time checks
-- **Extensibility**: Easy to add new configuration types
-- **Maintainability**: Clean, modular architecture
+- **DRY Principle**: Common RESTEasy client setup in base class
+- **Type Safety**: JAX-RS annotations provide compile-time API validation
+- **Extensibility**: Easy to add new API endpoints in the client interface
+- **Maintainability**: Clean, annotation-driven REST client architecture
+- **Performance**: RESTEasy provides optimized HTTP handling
 
 ## Development
 
 ### Clean Code Principles
 
-- Separation of Concerns (Model, Service, UI)
+- Separation of Concerns (Model, API, Service, UI)
 - Single Responsibility Principle
-- Inheritance for code reuse
+- JAX-RS Client Proxy Pattern for type-safe API calls
 - Asynchronous API calls with CompletableFuture
-- Proper Resource Management (HTTP client cleanup)
+- Proper Resource Management (RESTEasy client cleanup)
 - Generic programming for type safety
+- Annotation-driven REST API definitions
 
 ### Error Handling
 
