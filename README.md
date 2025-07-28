@@ -26,12 +26,11 @@ This application provides a graphical user interface for managing MRP configurat
 ```
 src/main/java/com/apag/p2plus/management/plugins/mrp/
 ├── MRPConfigApplication.java         # Main application class
-├── api/
-│   └── MRPConfigClient.java         # JAX-RS Client Interface for REST API calls
 ├── model/
 │   ├── Scenario.java                # Data model for scenarios
 │   └── ConfigItem.java              # Data model for configuration items
 ├── service/
+│   ├── MRPConfigClient.java         # JAX-RS Client Interface for REST API calls
 │   ├── BaseConfigService.java       # Abstract base service with RESTEasy client infrastructure
 │   ├── ScenarioService.java         # Service for scenario management
 │   ├── TechnicalConfigService.java  # Service for technical configuration
@@ -186,7 +185,7 @@ The application uses a modern JAX-RS client-based architecture:
 
 ### Clean Code Principles
 
-- Separation of Concerns (Model, API, Service, UI)
+- Separation of Concerns (Model, Service, UI)
 - Single Responsibility Principle
 - JAX-RS Client Proxy Pattern for type-safe API calls
 - Asynchronous API calls with CompletableFuture
