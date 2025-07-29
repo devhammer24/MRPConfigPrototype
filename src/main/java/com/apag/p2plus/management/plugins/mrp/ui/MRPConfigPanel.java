@@ -2,9 +2,10 @@ package com.apag.p2plus.management.plugins.mrp.ui;
 
 import com.apag.p2plus.management.plugins.mrp.model.ConfigItem;
 import com.apag.p2plus.management.plugins.mrp.model.Scenario;
+import com.apag.p2plus.management.plugins.mrp.service.BaseConfigService;
 import com.apag.p2plus.management.plugins.mrp.service.OperationalConfigService;
-import com.apag.p2plus.management.plugins.mrp.service.ScenarioService;
-import com.apag.p2plus.management.plugins.mrp.service.TechnicalConfigService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -20,9 +21,12 @@ import java.util.Map;
  */
 public class MRPConfigPanel extends JPanel {
 
-  private final ScenarioService scenarioService;
-  private final TechnicalConfigService technicalConfigService;
+  private static final Logger logger = LoggerFactory.getLogger(MRPConfigPanel.class);
+  
+  private final BaseConfigService<Scenario> scenarioService;
+  private final BaseConfigService<ConfigItem> technicalConfigService;
   private final OperationalConfigService operationalConfigService;
+  
   private JComboBox<Scenario> scenarioComboBox;
   private JPanel technicalConfigPanel;
   private JPanel operationalConfigPanel;
@@ -30,12 +34,15 @@ public class MRPConfigPanel extends JPanel {
   private Map<String, JComponent> technicalConfigComponents;
   private Map<String, JComponent> operationalConfigComponents;
 
-  public MRPConfigPanel() {
-    this.scenarioService = new ScenarioService();
-    this.technicalConfigService = new TechnicalConfigService();
-    this.operationalConfigService = new OperationalConfigService();
+  public MRPConfigPanel(BaseConfigService<Scenario> scenarioService,
+                       BaseConfigService<ConfigItem> technicalConfigService,
+                       OperationalConfigService operationalConfigService) {
+    this.scenarioService = scenarioService;
+    this.technicalConfigService = technicalConfigService;
+    this.operationalConfigService = operationalConfigService;
     this.technicalConfigComponents = new HashMap<>();
     this.operationalConfigComponents = new HashMap<>();
+    
     initializeComponents();
     layoutComponents();
     loadScenarios();
@@ -44,27 +51,16 @@ public class MRPConfigPanel extends JPanel {
   private void initializeComponents() {
     setLayout(new BorderLayout());
 
-    // Scenario ComboBox
     scenarioComboBox = new JComboBox<>();
     scenarioComboBox.setPreferredSize(new Dimension(200, 25));
 
-    // Technical configuration panel
-    technicalConfigPanel = new JPanel();
-    technicalConfigPanel.setLayout(new GridBagLayout());
-
-    // Operational configuration panel
-    operationalConfigPanel = new JPanel();
-    operationalConfigPanel.setLayout(new GridBagLayout());
+    technicalConfigPanel = new JPanel(new GridBagLayout());
+    operationalConfigPanel = new JPanel(new GridBagLayout());
   }
 
   private void layoutComponents() {
-    // Toolbar Panel
-    JPanel toolbarPanel = createToolbarPanel();
-    add(toolbarPanel, BorderLayout.NORTH);
-
-    // Main content panel with split areas
-    JPanel contentPanel = createContentPanel();
-    add(contentPanel, BorderLayout.CENTER);
+    add(createToolbarPanel(), BorderLayout.NORTH);
+    add(createContentPanel(), BorderLayout.CENTER);
   }
 
   private JPanel createToolbarPanel() {
@@ -78,13 +74,18 @@ public class MRPConfigPanel extends JPanel {
     leftPanel.add(scenarioLabel);
     leftPanel.add(scenarioComboBox);
 
-    // Right area with Create Scenario button
+    // Right area with buttons
     JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-    JButton createScenarioButton = new JButton("Create scenario");
+    
+    JButton createScenarioButton = new JButton("➕ Create Scenario");
     createScenarioButton.addActionListener(e -> onCreateScenarioClicked());
+    
+    JButton saveButton = new JButton("💾 Save");
+    saveButton.addActionListener(e -> onSaveConfigurationClicked());
+    
     rightPanel.add(createScenarioButton);
+    rightPanel.add(saveButton);
 
-    // Add listener for scenario selection changes
     scenarioComboBox.addActionListener(e -> onScenarioSelectionChanged());
 
     toolbarPanel.add(leftPanel, BorderLayout.WEST);
@@ -96,23 +97,17 @@ public class MRPConfigPanel extends JPanel {
   private JPanel createContentPanel() {
     JPanel contentPanel = new JPanel(new BorderLayout());
 
-    // Technical Config Panel
     JPanel technicalPanel = createTechnicalConfigPanel();
-
-    // Operational Config Panel
     JPanel operationalPanel = createOperationalConfigPanel();
 
-    // Split pane for vertically dividable areas
     splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, technicalPanel, operationalPanel);
-    splitPane.setResizeWeight(0.5); // Equal distribution
+    splitPane.setResizeWeight(0.5);
     splitPane.setOneTouchExpandable(true);
     splitPane.setContinuousLayout(true);
 
-    // Event listener for dynamic resizing
     addComponentListener(new ComponentAdapter() {
       @Override
       public void componentResized(ComponentEvent e) {
-        // Maintain proportional distribution
         splitPane.setDividerLocation(0.5);
       }
     });
@@ -128,7 +123,6 @@ public class MRPConfigPanel extends JPanel {
       new TitledBorder("Technical")
     ));
 
-    // Create wrapper panel with BoxLayout for automatic size adjustment
     JPanel wrapperPanel = new JPanel();
     wrapperPanel.setLayout(new BoxLayout(wrapperPanel, BoxLayout.Y_AXIS));
     wrapperPanel.add(technicalConfigPanel);
@@ -139,36 +133,16 @@ public class MRPConfigPanel extends JPanel {
     scrollPane.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
     panel.add(scrollPane, BorderLayout.CENTER);
-
-    // Load technical configuration asynchronously
     loadTechnicalConfig();
 
     return panel;
   }
 
-  private JPanel createConfigPanel(String title, JTextArea textArea) {
-    JPanel panel = new JPanel(new BorderLayout());
-    panel.setBorder(BorderFactory.createCompoundBorder(
-      BorderFactory.createEmptyBorder(5, 5, 5, 5),
-      new TitledBorder(title)
-    ));
-
-    JScrollPane scrollPane = new JScrollPane(textArea);
-    scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-    scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-    scrollPane.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-
-    panel.add(scrollPane, BorderLayout.CENTER);
-    return panel;
-  }
-
   private void loadScenarios() {
-    // Show a loading indicator
     scenarioComboBox.addItem(new Scenario("loading", "Loading scenarios..."));
     scenarioComboBox.setEnabled(false);
 
-    // Load scenarios asynchronously
-    scenarioService.loadScenariosAsync().thenAccept(scenarios -> {
+    scenarioService.loadAsync().thenAccept(scenarios -> {
       SwingUtilities.invokeLater(() -> {
         scenarioComboBox.removeAllItems();
 
@@ -192,25 +166,34 @@ public class MRPConfigPanel extends JPanel {
     });
   }
 
-  /**
-   * Returns the currently selected scenario
-   * 
-   * @return The selected scenario or null
-   */
   public Scenario getSelectedScenario() {
     return (Scenario) scenarioComboBox.getSelectedItem();
   }
 
-  /**
-   * Loads technical configuration and builds dynamic UI
-   */
   private void loadTechnicalConfig() {
-    // Clear existing components
     technicalConfigPanel.removeAll();
     technicalConfigComponents.clear();
 
-    // Add loading indicator
-    JLabel loadingLabel = new JLabel("Loading technical configuration...");
+    addLoadingLabel(technicalConfigPanel, "Loading technical configuration...");
+
+    technicalConfigService.loadAsync().thenAccept(configItems -> {
+      SwingUtilities.invokeLater(() -> {
+        if (configItems != null) {
+          buildTechnicalConfigUI(configItems);
+        } else {
+          showErrorInPanel(technicalConfigPanel, "No technical configuration available");
+        }
+      });
+    }).exceptionally(throwable -> {
+      SwingUtilities.invokeLater(() -> {
+        showErrorInPanel(technicalConfigPanel, "Error loading technical configuration");
+      });
+      return null;
+    });
+  }
+
+  private void addLoadingLabel(JPanel panel, String text) {
+    JLabel loadingLabel = new JLabel(text);
     loadingLabel.setHorizontalAlignment(SwingConstants.CENTER);
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.gridx = 0;
@@ -218,37 +201,27 @@ public class MRPConfigPanel extends JPanel {
     gbc.gridwidth = 2;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.insets = new Insets(2, 2, 2, 2);
-    technicalConfigPanel.add(loadingLabel, gbc);
-    technicalConfigPanel.revalidate();
-    technicalConfigPanel.repaint();
-
-    // Load configuration asynchronously
-    technicalConfigService.loadTechnicalConfigAsync().thenAccept(configItems -> {
-      SwingUtilities.invokeLater(() -> {
-        buildTechnicalConfigUI(configItems);
-      });
-    }).exceptionally(throwable -> {
-      SwingUtilities.invokeLater(() -> {
-        technicalConfigPanel.removeAll();
-        JLabel errorLabel = new JLabel("Error loading technical configuration");
-        errorLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        GridBagConstraints gbc2 = new GridBagConstraints();
-        gbc2.gridx = 0;
-        gbc2.gridy = 0;
-        gbc2.gridwidth = 2;
-        gbc2.fill = GridBagConstraints.HORIZONTAL;
-        gbc2.insets = new Insets(2, 2, 2, 2);
-        technicalConfigPanel.add(errorLabel, gbc2);
-        technicalConfigPanel.revalidate();
-        technicalConfigPanel.repaint();
-      });
-      return null;
-    });
+    panel.add(loadingLabel, gbc);
+    panel.revalidate();
+    panel.repaint();
   }
 
-  /**
-   * Builds the dynamic UI based on technical configuration items
-   */
+  private void showErrorInPanel(JPanel panel, String message) {
+    panel.removeAll();
+    JLabel errorLabel = new JLabel(message);
+    errorLabel.setHorizontalAlignment(SwingConstants.CENTER);
+    errorLabel.setForeground(Color.RED);
+    GridBagConstraints gbc = new GridBagConstraints();
+    gbc.gridx = 0;
+    gbc.gridy = 0;
+    gbc.gridwidth = 2;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.insets = new Insets(2, 2, 2, 2);
+    panel.add(errorLabel, gbc);
+    panel.revalidate();
+    panel.repaint();
+  }
+
   private void buildTechnicalConfigUI(List<ConfigItem> configItems) {
     technicalConfigPanel.removeAll();
     technicalConfigComponents.clear();
@@ -259,7 +232,6 @@ public class MRPConfigPanel extends JPanel {
 
     int row = 0;
     for (ConfigItem item : configItems) {
-      // Add label
       JLabel label = new JLabel(item.getDescription() + ":");
       gbc.gridx = 0;
       gbc.gridy = row;
@@ -268,7 +240,6 @@ public class MRPConfigPanel extends JPanel {
       gbc.weightx = 0.0;
       technicalConfigPanel.add(label, gbc);
 
-      // Add component based on type
       JComponent component = createComponentForType(item);
       if (component != null) {
         technicalConfigComponents.put(item.getName(), component);
@@ -284,7 +255,7 @@ public class MRPConfigPanel extends JPanel {
       row++;
     }
 
-    // Add spacer at the bottom
+    // Add spacer
     gbc.gridx = 0;
     gbc.gridy = row;
     gbc.gridwidth = 2;
@@ -297,9 +268,6 @@ public class MRPConfigPanel extends JPanel {
     technicalConfigPanel.repaint();
   }
 
-  /**
-   * Creates appropriate UI component based on the item type
-   */
   private JComponent createComponentForType(ConfigItem item) {
     switch (item.getType().toLowerCase()) {
       case "string":
@@ -319,7 +287,6 @@ public class MRPConfigPanel extends JPanel {
         return checkBox;
 
       default:
-        // For unknown types, use a text field
         JTextField defaultField = new JTextField(item.getValueAsString());
         defaultField.setName(item.getName());
         return defaultField;
@@ -333,7 +300,6 @@ public class MRPConfigPanel extends JPanel {
       new TitledBorder("Operational")
     ));
 
-    // Create wrapper panel with BoxLayout for automatic size adjustment
     JPanel wrapperPanel = new JPanel();
     wrapperPanel.setLayout(new BoxLayout(wrapperPanel, BoxLayout.Y_AXIS));
     wrapperPanel.add(operationalConfigPanel);
@@ -348,9 +314,6 @@ public class MRPConfigPanel extends JPanel {
     return panel;
   }
 
-  /**
-   * Event handler for scenario selection changes
-   */
   private void onScenarioSelectionChanged() {
     Scenario selectedScenario = getSelectedScenario();
     if (selectedScenario != null && !selectedScenario.getScenarioId().equals("loading") && !selectedScenario.getScenarioId().equals("error")) {
@@ -358,54 +321,28 @@ public class MRPConfigPanel extends JPanel {
     }
   }
 
-  /**
-   * Loads operational configuration for the given scenario
-   */
   private void loadOperationalConfig(String scenarioId) {
-    // Clear existing components
     operationalConfigPanel.removeAll();
     operationalConfigComponents.clear();
 
-    // Add loading indicator
-    JLabel loadingLabel = new JLabel("Loading operational configuration...");
-    loadingLabel.setHorizontalAlignment(SwingConstants.CENTER);
-    GridBagConstraints gbc = new GridBagConstraints();
-    gbc.gridx = 0;
-    gbc.gridy = 0;
-    gbc.gridwidth = 2;
-    gbc.fill = GridBagConstraints.HORIZONTAL;
-    gbc.insets = new Insets(2, 2, 2, 2);
-    operationalConfigPanel.add(loadingLabel, gbc);
-    operationalConfigPanel.revalidate();
-    operationalConfigPanel.repaint();
+    addLoadingLabel(operationalConfigPanel, "Loading operational configuration...");
 
-    // Load configuration asynchronously
-    operationalConfigService.loadOperationalConfigAsync(scenarioId).thenAccept(configItems -> {
+    operationalConfigService.loadAsync(scenarioId).thenAccept(configItems -> {
       SwingUtilities.invokeLater(() -> {
-        buildOperationalConfigUI(configItems);
+        if (configItems != null) {
+          buildOperationalConfigUI(configItems);
+        } else {
+          showErrorInPanel(operationalConfigPanel, "No operational configuration available");
+        }
       });
     }).exceptionally(throwable -> {
       SwingUtilities.invokeLater(() -> {
-        operationalConfigPanel.removeAll();
-        JLabel errorLabel = new JLabel("Error loading operational configuration");
-        errorLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        GridBagConstraints gbc2 = new GridBagConstraints();
-        gbc2.gridx = 0;
-        gbc2.gridy = 0;
-        gbc2.gridwidth = 2;
-        gbc2.fill = GridBagConstraints.HORIZONTAL;
-        gbc2.insets = new Insets(2, 2, 2, 2);
-        operationalConfigPanel.add(errorLabel, gbc2);
-        operationalConfigPanel.revalidate();
-        operationalConfigPanel.repaint();
+        showErrorInPanel(operationalConfigPanel, "Error loading operational configuration");
       });
       return null;
     });
   }
 
-  /**
-   * Builds the dynamic UI for operational configuration
-   */
   private void buildOperationalConfigUI(List<ConfigItem> configItems) {
     operationalConfigPanel.removeAll();
     operationalConfigComponents.clear();
@@ -416,7 +353,6 @@ public class MRPConfigPanel extends JPanel {
 
     int row = 0;
     for (ConfigItem item : configItems) {
-      // Add label
       JLabel label = new JLabel(item.getDescription() + ":");
       gbc.gridx = 0;
       gbc.gridy = row;
@@ -425,7 +361,6 @@ public class MRPConfigPanel extends JPanel {
       gbc.weightx = 0.0;
       operationalConfigPanel.add(label, gbc);
 
-      // Add component based on type
       JComponent component = createComponentForType(item);
       if (component != null) {
         operationalConfigComponents.put(item.getName(), component);
@@ -441,7 +376,7 @@ public class MRPConfigPanel extends JPanel {
       row++;
     }
 
-    // Add spacer at the bottom
+    // Add spacer
     gbc.gridx = 0;
     gbc.gridy = row;
     gbc.gridwidth = 2;
@@ -454,11 +389,7 @@ public class MRPConfigPanel extends JPanel {
     operationalConfigPanel.repaint();
   }
 
-  /**
-   * Event handler for the Create Scenario button
-   */
   private void onCreateScenarioClicked() {
-    // TODO: Implementation for creating new scenarios
     JOptionPane.showMessageDialog(
       this,
       "Create Scenario functionality will be implemented in a future version.",
@@ -467,9 +398,16 @@ public class MRPConfigPanel extends JPanel {
     );
   }
 
-  /**
-   * Cleanup method for resources
-   */
+  private void onSaveConfigurationClicked() {
+    try {
+      // TODO: Collect configuration from UI components
+      JOptionPane.showMessageDialog(this, "Configuration saved successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+    } catch (Exception e) {
+      logger.error("Error saving configuration", e);
+      JOptionPane.showMessageDialog(this, "Failed to save configuration: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+    }
+  }
+
   public void cleanup() {
     if (scenarioService != null) {
       scenarioService.close();

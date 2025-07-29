@@ -1,6 +1,11 @@
 package com.apag.p2plus.management.plugins.mrp;
 
 import com.apag.p2plus.management.plugins.mrp.ui.MRPConfigPanel;
+import com.apag.p2plus.management.plugins.mrp.service.ScenarioService;
+import com.apag.p2plus.management.plugins.mrp.service.TechnicalConfigService;
+import com.apag.p2plus.management.plugins.mrp.service.OperationalConfigService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,6 +17,7 @@ import java.awt.event.WindowEvent;
  */
 public class MRPConfigApplication extends JFrame {
 
+  private static final Logger logger = LoggerFactory.getLogger(MRPConfigApplication.class);
   private static final String APPLICATION_TITLE = "MRP Config Prototype";
   private static final int DEFAULT_WIDTH = 1024;
   private static final int DEFAULT_HEIGHT = 768;
@@ -19,6 +25,7 @@ public class MRPConfigApplication extends JFrame {
   private MRPConfigPanel mainPanel;
 
   public MRPConfigApplication() {
+    logger.info("Starting MRP Configuration Application");
     initializeFrame();
     createComponents();
     setupEventHandlers();
@@ -28,28 +35,25 @@ public class MRPConfigApplication extends JFrame {
     setTitle(APPLICATION_TITLE);
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     setSize(DEFAULT_WIDTH, DEFAULT_HEIGHT);
-    setLocationRelativeTo(null); // Center the window
+    setLocationRelativeTo(null);
 
-    // Set application icon (optional)
     try {
-      setLookAndFeel();
+      UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
     } catch (Exception e) {
-      System.err.println("Warning: Default Look-and-Feel could not be set: " + e.getMessage());
+      logger.warn("Could not set system look and feel: {}", e.getMessage());
     }
   }
 
-  private void setLookAndFeel() throws Exception {
-    // Use system Look-and-Feel for better integration
-    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-  }
-
   private void createComponents() {
-    mainPanel = new MRPConfigPanel();
+    // Create services directly
+    mainPanel = new MRPConfigPanel(
+        new ScenarioService(),
+        new TechnicalConfigService(),
+        new OperationalConfigService()
+    );
+    
     add(mainPanel, BorderLayout.CENTER);
-
-    // Status bar (optional for future extensions)
-    JPanel statusBar = createStatusBar();
-    add(statusBar, BorderLayout.SOUTH);
+    add(createStatusBar(), BorderLayout.SOUTH);
   }
 
   private JPanel createStatusBar() {
@@ -64,10 +68,10 @@ public class MRPConfigApplication extends JFrame {
   }
 
   private void setupEventHandlers() {
-    // Cleanup on window closing
     addWindowListener(new WindowAdapter() {
       @Override
       public void windowClosing(WindowEvent e) {
+        logger.info("Application closing");
         cleanup();
         System.exit(0);
       }
@@ -80,37 +84,23 @@ public class MRPConfigApplication extends JFrame {
     }
   }
 
-  /**
-   * Main method of the application
-   * 
-   * @param args Command line arguments
-   */
   public static void main(String[] args) {
-    // Configure system properties for better Swing performance
+    // Configure Swing for better performance
     System.setProperty("swing.aatext", "true");
     System.setProperty("awt.useSystemAAFontSettings", "on");
 
-    // Start the application in the Event Dispatch Thread
     SwingUtilities.invokeLater(() -> {
       try {
-        MRPConfigApplication app = new MRPConfigApplication();
-        app.setVisible(true);
-
-        System.out.println("MRP Configuration Prototype started");
-        System.out.println("Window size: " + DEFAULT_WIDTH + "x" + DEFAULT_HEIGHT);
-
+        new MRPConfigApplication().setVisible(true);
+        logger.info("Application started successfully");
       } catch (Exception e) {
-        System.err.println("Error starting the application: " + e.getMessage());
-        e.printStackTrace();
-
-        // Show error dialog
+        logger.error("Failed to start application", e);
         JOptionPane.showMessageDialog(
           null,
-          "The application could not be started:\n" + e.getMessage(),
+          "Could not start application:\n" + e.getMessage(),
           "Startup Error",
           JOptionPane.ERROR_MESSAGE
         );
-
         System.exit(1);
       }
     });

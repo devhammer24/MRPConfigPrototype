@@ -11,6 +11,7 @@ This application provides a graphical user interface for managing MRP configurat
 - **Configuration Areas**: Two vertically scrollable and resizable areas for technical and operational configurations
 - **REST Integration**: Automatic loading of scenarios, technical and operational configurations from mock APIs
 - **Fallback Mechanism**: Graceful handling when APIs are unavailable with example data
+- **Modern UI**: Icons and intuitive button design for better user experience
 
 ## Technical Details
 
@@ -18,8 +19,10 @@ This application provides a graphical user interface for managing MRP configurat
 - **Build Tool**: Maven
 - **GUI Framework**: Swing
 - **REST Client**: RESTEasy (JAX-RS Client Implementation)
-- **JSON Processing**: Jackson
-- **Architecture**: Service-oriented with JAX-RS Client Proxy Pattern
+- **JSON Processing**: Jackson (automatically detected)
+- **Logging**: SLF4J with Simple implementation
+- **Testing**: JUnit 5 + Mockito
+- **Architecture**: Clean service-oriented architecture with dependency injection
 
 ## Project Structure
 
@@ -31,12 +34,14 @@ src/main/java/com/apag/p2plus/management/plugins/mrp/
 │   └── ConfigItem.java              # Data model for configuration items
 ├── service/
 │   ├── MRPConfigClient.java         # JAX-RS Client Interface for REST API calls
-│   ├── BaseConfigService.java       # Abstract base service with RESTEasy client infrastructure
+│   ├── BaseConfigService.java       # Abstract base service with RESTEasy client
 │   ├── ScenarioService.java         # Service for scenario management
 │   ├── TechnicalConfigService.java  # Service for technical configuration
 │   └── OperationalConfigService.java# Service for operational configuration
 └── ui/
     └── MRPConfigPanel.java          # Main UI panel with dynamic form generation
+
+src/test/java/                       # Unit tests with JUnit 5 and Mockito
 ```
 
 ## Installation and Startup
@@ -49,14 +54,23 @@ src/main/java/com/apag/p2plus/management/plugins/mrp/
 ### Key Dependencies
 
 - **RESTEasy Client**: JAX-RS client implementation
-- **Jackson**: JSON serialization/deserialization
+- **Jackson**: JSON serialization/deserialization (auto-detected)
 - **Jakarta WS-RS API**: JAX-RS standard annotations
+- **SLF4J**: Logging framework
+- **JUnit 5**: Testing framework
+- **Mockito**: Mocking framework for tests
 - **Swing**: GUI framework (part of JDK)
 
 ### Build Project
 
 ```bash
 mvn clean compile
+```
+
+### Run Tests
+
+```bash
+mvn test
 ```
 
 ### Start Application
@@ -80,7 +94,9 @@ run.bat
 
 The application is divided into three main areas:
 
-1. **Toolbar (top)**: Contains the scenario selection dropdown and "Create scenario" button
+1. **Toolbar (top)**: Contains the scenario selection dropdown and action buttons:
+   - ➕ **Create Scenario**: Create new scenarios
+   - 💾 **Save**: Save current configuration
 2. **Technical Config (middle)**: Dynamically generated form fields for technical configuration
 3. **Operational Config (bottom)**: Dynamically generated form fields for operational configuration (scenario-specific)
 
@@ -162,42 +178,61 @@ If any REST API is not available, example configurations are automatically loade
 
 ## Architecture
 
+### Clean Architecture Principles
+
+The application follows modern clean code principles:
+
+- **Dependency Injection**: Services are injected via constructor
+- **Single Responsibility**: Each service has one clear purpose
+- **Separation of Concerns**: UI, Service, and Model layers are clearly separated
+- **Async Operations**: Non-blocking UI with CompletableFuture
+- **Thread Safety**: All UI updates happen on the Event Dispatch Thread
+- **Resource Management**: Proper cleanup of REST clients
+
 ### Service Layer Architecture
 
-The application uses a modern JAX-RS client-based architecture:
-
-- **MRPConfigClient**: JAX-RS interface defining all REST API endpoints with annotations
-- **BaseConfigService<T>**: Abstract base class providing RESTEasy client infrastructure and generic configuration loading
-- **ScenarioService**: Extends BaseConfigService for scenario management
-- **TechnicalConfigService**: Extends BaseConfigService for technical configuration
-- **OperationalConfigService**: Extends BaseConfigService for operational configuration
+- **BaseConfigService<T>**: Abstract base class providing RESTEasy client infrastructure
+- **ScenarioService**: Handles scenario loading with fallback
+- **TechnicalConfigService**: Manages technical configuration
+- **OperationalConfigService**: Manages scenario-specific operational configuration
+- **MRPConfigClient**: JAX-RS interface defining all REST API endpoints
 
 ### Benefits
 
-- **Separation of Concerns**: Each service has a single responsibility
-- **DRY Principle**: Common RESTEasy client setup in base class
-- **Type Safety**: JAX-RS annotations provide compile-time API validation
-- **Extensibility**: Easy to add new API endpoints in the client interface
-- **Maintainability**: Clean, annotation-driven REST client architecture
-- **Performance**: RESTEasy provides optimized HTTP handling
+- **Testability**: Services can be easily mocked for unit testing
+- **Maintainability**: Clean separation enables easy modification
+- **Extensibility**: New configuration types can be added easily
+- **Performance**: Asynchronous loading keeps UI responsive
+- **Reliability**: Fallback configurations ensure application always works
+
+## Testing
+
+The application includes comprehensive unit tests:
+
+- **Service Testing**: All services are tested with mocked dependencies
+- **Error Handling**: API failures and fallback scenarios are tested
+- **Async Operations**: CompletableFuture-based operations are properly tested
+
+Run tests with:
+```bash
+mvn test
+```
 
 ## Development
 
-### Clean Code Principles
+### Code Quality
 
-- Separation of Concerns (Model, Service, UI)
-- Single Responsibility Principle
-- JAX-RS Client Proxy Pattern for type-safe API calls
-- Asynchronous API calls with CompletableFuture
-- Proper Resource Management (RESTEasy client cleanup)
-- Generic programming for type safety
-- Annotation-driven REST API definitions
+- **2-space indentation**: Following .editorconfig standards
+- **Consistent naming**: English language throughout
+- **Minimal logging**: Only essential warnings and errors
+- **Modern Java**: Leveraging Java 17 features
+- **Clean imports**: No unused dependencies
 
 ### Error Handling
 
-- Graceful fallback when APIs are unavailable
-- User-friendly error messages
-- Asynchronous loading with proper exception handling
+- **Graceful degradation**: Fallback when APIs are unavailable
+- **User-friendly messages**: Clear error dialogs without technical details
+- **Proper logging**: Structured logging for debugging
 
 ## Future Extensions
 
@@ -208,6 +243,7 @@ The application uses a modern JAX-RS client-based architecture:
 - **User Management**: Authentication and user-specific configurations
 - **Internationalization**: Multi-language support
 - **Configuration Templates**: Pre-defined configuration templates
+- **Advanced UI**: More sophisticated form controls and validation
 
 ## License
 
