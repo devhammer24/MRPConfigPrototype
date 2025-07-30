@@ -20,7 +20,7 @@ This application provides a graphical user interface for managing MRP configurat
 - **GUI Framework**: Swing
 - **REST Client**: RESTEasy (JAX-RS Client Implementation)
 - **JSON Processing**: Jackson (automatically detected)
-- **Logging**: SLF4J with Simple implementation
+- **Logging**: SLF4J with Logback implementation
 - **Testing**: JUnit 5 + Mockito
 - **Architecture**: Clean service-oriented architecture with dependency injection
 
@@ -35,6 +35,7 @@ src/main/java/com/apag/p2plus/management/plugins/mrp/
 ├── service/
 │   ├── MRPConfigClient.java         # JAX-RS Client Interface for REST API calls
 │   ├── BaseConfigService.java       # Abstract base service with RESTEasy client
+│   ├── ServiceFactory.java          # Factory for creating service instances
 │   ├── ScenarioService.java         # Service for scenario management
 │   ├── TechnicalConfigService.java  # Service for technical configuration
 │   └── OperationalConfigService.java# Service for operational configuration
@@ -42,6 +43,8 @@ src/main/java/com/apag/p2plus/management/plugins/mrp/
     └── MRPConfigPanel.java          # Main UI panel with dynamic form generation
 
 src/test/java/                       # Unit tests with JUnit 5 and Mockito
+src/main/resources/
+└── logback.xml                      # Logging configuration
 ```
 
 ## Installation and Startup
@@ -56,7 +59,7 @@ src/test/java/                       # Unit tests with JUnit 5 and Mockito
 - **RESTEasy Client**: JAX-RS client implementation
 - **Jackson**: JSON serialization/deserialization (auto-detected)
 - **Jakarta WS-RS API**: JAX-RS standard annotations
-- **SLF4J**: Logging framework
+- **Logback**: Logging framework with advanced configuration
 - **JUnit 5**: Testing framework
 - **Mockito**: Mocking framework for tests
 - **Swing**: GUI framework (part of JDK)
@@ -182,7 +185,7 @@ If any REST API is not available, example configurations are automatically loade
 
 The application follows modern clean code principles:
 
-- **Dependency Injection**: Services are injected via constructor
+- **Factory Pattern**: Services are managed via ServiceFactory singleton
 - **Single Responsibility**: Each service has one clear purpose
 - **Separation of Concerns**: UI, Service, and Model layers are clearly separated
 - **Async Operations**: Non-blocking UI with CompletableFuture
@@ -191,6 +194,7 @@ The application follows modern clean code principles:
 
 ### Service Layer Architecture
 
+- **ServiceFactory**: Singleton factory for managing service instances
 - **BaseConfigService<T>**: Abstract base class providing RESTEasy client infrastructure
 - **ScenarioService**: Handles scenario loading with fallback
 - **TechnicalConfigService**: Manages technical configuration
@@ -199,7 +203,7 @@ The application follows modern clean code principles:
 
 ### Benefits
 
-- **Testability**: Services can be easily mocked for unit testing
+- **Testability**: Services can be easily mocked for unit testing via factory
 - **Maintainability**: Clean separation enables easy modification
 - **Extensibility**: New configuration types can be added easily
 - **Performance**: Asynchronous loading keeps UI responsive
@@ -224,9 +228,18 @@ mvn test
 
 - **2-space indentation**: Following .editorconfig standards
 - **Consistent naming**: English language throughout
-- **Minimal logging**: Only essential warnings and errors
+- **Structured logging**: Logback with console and file appenders
 - **Modern Java**: Leveraging Java 17 features
 - **Clean imports**: No unused dependencies
+
+### Logging Configuration
+
+The application uses Logback for structured logging:
+
+- **Console output**: For development and debugging
+- **File logging**: Logs stored in `logs/mrp-config.log`
+- **Rolling policy**: Daily rotation with size limits (10MB per file)
+- **Log levels**: Configurable per package (default INFO for application)
 
 ### Error Handling
 
