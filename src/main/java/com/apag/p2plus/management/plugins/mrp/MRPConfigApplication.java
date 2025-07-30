@@ -1,9 +1,7 @@
 package com.apag.p2plus.management.plugins.mrp;
 
 import com.apag.p2plus.management.plugins.mrp.ui.MRPConfigPanel;
-import com.apag.p2plus.management.plugins.mrp.service.ScenarioService;
-import com.apag.p2plus.management.plugins.mrp.service.TechnicalConfigService;
-import com.apag.p2plus.management.plugins.mrp.service.OperationalConfigService;
+import com.apag.p2plus.management.plugins.mrp.service.ServiceFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,11 +43,11 @@ public class MRPConfigApplication extends JFrame {
   }
 
   private void createComponents() {
-    // Create services directly
+    // Create services via factory
     mainPanel = new MRPConfigPanel(
-        new ScenarioService(),
-        new TechnicalConfigService(),
-        new OperationalConfigService()
+        ServiceFactory.getScenarioService(),
+        ServiceFactory.getTechnicalConfigService(),
+        ServiceFactory.getOperationalConfigService()
     );
     
     add(mainPanel, BorderLayout.CENTER);
