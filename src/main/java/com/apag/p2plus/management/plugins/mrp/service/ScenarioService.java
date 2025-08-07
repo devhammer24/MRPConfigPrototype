@@ -1,6 +1,9 @@
 package com.apag.p2plus.management.plugins.mrp.service;
 
 import com.apag.p2plus.management.plugins.mrp.model.Scenario;
+import jakarta.ws.rs.core.Response;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +13,8 @@ import java.util.concurrent.CompletableFuture;
  * Service for loading scenarios
  */
 public class ScenarioService extends BaseConfigService<Scenario> {
+
+  private static final Logger logger = LoggerFactory.getLogger(ScenarioService.class);
 
   @Override
   public List<Scenario> load() {
@@ -28,4 +33,32 @@ public class ScenarioService extends BaseConfigService<Scenario> {
     fallbackScenarios.add(new Scenario("Test_Mandant_3000", "Test scenario for Client 3000"));
     return fallbackScenarios;
   }
-} 
+
+  /**
+   * Creates a new scenario
+   * 
+   * @param scenario Scenario object to create
+   * @return true if scenario was created successfully (HTTP 201), false otherwise
+   */
+  public boolean createScenario(Scenario scenario) {
+    try {
+      logger.info("Creating new scenario: {}", scenario.getScenarioId());
+      Response response = configClient.createScenario(scenario);
+      
+      int statusCode = response.getStatus();
+      logger.info("Create scenario response status: {}", statusCode);
+      
+      if (statusCode == 201) {
+        logger.info("Scenario '{}' created successfully", scenario.getScenarioId());
+        return true;
+      } else {
+        logger.warn("Failed to create scenario '{}', status code: {}", scenario.getScenarioId(), statusCode);
+        return false;
+      }
+      
+    } catch (Exception e) {
+      logger.error("Error creating scenario '{}'", scenario.getScenarioId(), e);
+      throw new RuntimeException("Failed to create scenario: " + e.getMessage(), e);
+    }
+  }
+}

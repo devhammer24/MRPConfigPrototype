@@ -83,4 +83,4 @@ public class ConfigItem {
            ", description='" + description + '\'' +
            '}';
   }
-} 
+}

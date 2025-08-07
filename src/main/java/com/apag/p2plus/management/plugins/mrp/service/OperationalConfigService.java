@@ -43,4 +43,4 @@ public class OperationalConfigService extends BaseConfigService<ConfigItem> {
     fallbackConfig.add(new ConfigItem("retryCount", "string", "3", "Retry count"));
     return fallbackConfig;
   }
-} 
+}

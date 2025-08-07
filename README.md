@@ -6,12 +6,33 @@ A Java 17 Swing application for MRP (Material Requirements Planning) configurati
 
 This application provides a graphical user interface for managing MRP configurations with the following features:
 
-- **Scenario Selection**: Dropdown menu with scenarios loaded via REST API
+- **Scenario Management**: Complete scenario lifecycle with dropdown selection and creation functionality
+- **Scenario Creation**: User-friendly dialog for creating new scenarios with validation
+- **Configuration Saving**: Save technical configurations via REST API with status confirmation
 - **Dynamic Configuration UI**: Automatically generated form fields based on configuration items from API
 - **Configuration Areas**: Two vertically scrollable and resizable areas for technical and operational configurations
-- **REST Integration**: Automatic loading of scenarios, technical and operational configurations from mock APIs
+- **REST Integration**: Full CRUD operations for scenarios and configurations via mock APIs
 - **Fallback Mechanism**: Graceful handling when APIs are unavailable with example data
-- **Modern UI**: Icons and intuitive button design for better user experience
+- **Modern UI**: Icons, intuitive dialogs, and professional user experience
+
+## Key Features in Detail
+
+### Scenario Management
+- **Scenario Selection**: Dropdown menu with all available scenarios loaded via REST API
+- **Scenario Creation**: Professional dialog for creating new scenarios
+  - Single unified dialog with both Szenario-ID and Szenario-Name input fields
+  - Input validation with user-friendly error messages
+  - Automatic scenario list refresh after successful creation
+  - HTTP 201 status code validation for successful scenario creation
+  - Graceful handling of user cancellation and empty inputs
+
+### Configuration Management  
+- **Technical Configuration Saving**: Complete save functionality for technical settings
+  - Collects all modified values from UI components automatically
+  - Supports multiple field types: string, password, and boolean
+  - Sends changes as JSON array to PUT /config/technical endpoint
+  - Comprehensive success/error feedback with detailed user messages
+  - Password field security with memory cleanup after use
 
 ## Technical Details
 
@@ -98,8 +119,8 @@ run.bat
 The application is divided into three main areas:
 
 1. **Toolbar (top)**: Contains the scenario selection dropdown and action buttons:
-   - ➕ **Create Scenario**: Create new scenarios
-   - 💾 **Save**: Save current configuration
+   - ➕ **Create Scenario**: Create new scenarios via intuitive dialog (Szenario-ID and Szenario-Name)
+   - 💾 **Save**: Save current technical configuration changes
 2. **Technical Config (middle)**: Dynamically generated form fields for technical configuration
 3. **Operational Config (bottom)**: Dynamically generated form fields for operational configuration (scenario-specific)
 
@@ -107,14 +128,21 @@ The bottom two areas are separated by a resizable splitter and automatically gen
 
 ## REST API Integration
 
-The application integrates with three REST APIs:
+The application integrates with four REST APIs:
 
 ### 1. Scenarios API
+
+**Get all scenarios:**
 ```
 GET https://80ab19d6-cfd5-42b4-889e-714dd9f0d184.mock.pstmn.io/config/scenarios
 ```
 
-**Expected JSON format:**
+**Create new scenario:**
+```
+POST https://80ab19d6-cfd5-42b4-889e-714dd9f0d184.mock.pstmn.io/config/scenarios
+```
+
+**Expected JSON format for GET response:**
 ```json
 [
     {
@@ -128,9 +156,26 @@ GET https://80ab19d6-cfd5-42b4-889e-714dd9f0d184.mock.pstmn.io/config/scenarios
 ]
 ```
 
+**Expected JSON format for POST request:**
+```json
+{
+    "scenarioId": "New_Scenario",
+    "description": "This is the new scenario"
+}
+```
+
+The POST request returns HTTP status code 201 on successful creation.
+
 ### 2. Technical Configuration API
+
+**Get technical configuration:**
 ```
 GET https://80ab19d6-cfd5-42b4-889e-714dd9f0d184.mock.pstmn.io/config/technical
+```
+
+**Save technical configuration:**
+```
+PUT https://80ab19d6-cfd5-42b4-889e-714dd9f0d184.mock.pstmn.io/config/technical
 ```
 
 ### 3. Operational Configuration API
@@ -138,7 +183,7 @@ GET https://80ab19d6-cfd5-42b4-889e-714dd9f0d184.mock.pstmn.io/config/technical
 GET https://80ab19d6-cfd5-42b4-889e-714dd9f0d184.mock.pstmn.io/config/operational/{scenarioId}
 ```
 
-**Expected JSON format for configuration APIs:**
+**Expected JSON format for GET configuration APIs:**
 ```json
 [
     {
@@ -158,6 +203,37 @@ GET https://80ab19d6-cfd5-42b4-889e-714dd9f0d184.mock.pstmn.io/config/operationa
         "type": "password",
         "value": null,
         "description": "Database password"
+    }
+]
+```
+
+**Expected JSON format for PUT technical configuration (save):**
+```json
+[
+    {
+        "name": "datasourceUrl",
+        "type": "string",
+        "value": "jdbc:mssql://localhost:5432/mydb-new"
+    },
+    {
+        "name": "datasourceDriver",
+        "type": "string",
+        "value": "mssql-new"
+    },
+    {
+        "name": "datasourceUsername",
+        "type": "string",
+        "value": "admin-new"
+    },
+    {
+        "name": "datasourcePassword",
+        "type": "password",
+        "value": "password-new"
+    },
+    {
+        "name": "datasourceDebug",
+        "type": "boolean",
+        "value": false
     }
 ]
 ```
@@ -196,10 +272,10 @@ The application follows modern clean code principles:
 
 - **ServiceFactory**: Singleton factory for managing service instances
 - **BaseConfigService<T>**: Abstract base class providing RESTEasy client infrastructure
-- **ScenarioService**: Handles scenario loading with fallback
-- **TechnicalConfigService**: Manages technical configuration
+- **ScenarioService**: Handles scenario loading and creation with fallback
+- **TechnicalConfigService**: Manages technical configuration loading and saving
 - **OperationalConfigService**: Manages scenario-specific operational configuration
-- **MRPConfigClient**: JAX-RS interface defining all REST API endpoints
+- **MRPConfigClient**: JAX-RS interface defining all REST API endpoints (GET, POST, PUT)
 
 ### Benefits
 

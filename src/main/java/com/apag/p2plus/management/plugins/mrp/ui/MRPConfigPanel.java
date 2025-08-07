@@ -2,8 +2,9 @@ package com.apag.p2plus.management.plugins.mrp.ui;
 
 import com.apag.p2plus.management.plugins.mrp.model.ConfigItem;
 import com.apag.p2plus.management.plugins.mrp.model.Scenario;
-import com.apag.p2plus.management.plugins.mrp.service.BaseConfigService;
 import com.apag.p2plus.management.plugins.mrp.service.OperationalConfigService;
+import com.apag.p2plus.management.plugins.mrp.service.ScenarioService;
+import com.apag.p2plus.management.plugins.mrp.service.TechnicalConfigService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -12,6 +13,7 @@ import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,8 +25,8 @@ public class MRPConfigPanel extends JPanel {
 
   private static final Logger logger = LoggerFactory.getLogger(MRPConfigPanel.class);
   
-  private final BaseConfigService<Scenario> scenarioService;
-  private final BaseConfigService<ConfigItem> technicalConfigService;
+  private final ScenarioService scenarioService;
+  private final TechnicalConfigService technicalConfigService;
   private final OperationalConfigService operationalConfigService;
   
   private JComboBox<Scenario> scenarioComboBox;
@@ -34,8 +36,8 @@ public class MRPConfigPanel extends JPanel {
   private Map<String, JComponent> technicalConfigComponents;
   private Map<String, JComponent> operationalConfigComponents;
 
-  public MRPConfigPanel(BaseConfigService<Scenario> scenarioService,
-                       BaseConfigService<ConfigItem> technicalConfigService,
+  public MRPConfigPanel(ScenarioService scenarioService,
+                       TechnicalConfigService technicalConfigService,
                        OperationalConfigService operationalConfigService) {
     this.scenarioService = scenarioService;
     this.technicalConfigService = technicalConfigService;
@@ -390,21 +392,211 @@ public class MRPConfigPanel extends JPanel {
   }
 
   private void onCreateScenarioClicked() {
-    JOptionPane.showMessageDialog(
+    try {
+      // Create custom dialog for scenario input
+      ScenarioInputResult result = showCreateScenarioDialog();
+      
+      if (result == null) {
+        // User cancelled
+        return;
+      }
+      
+      // Create new scenario object
+      Scenario newScenario = new Scenario(result.scenarioId, result.scenarioName);
+      
+      // Call service to create scenario
+      boolean success = scenarioService.createScenario(newScenario);
+      
+      if (success) {
+        // Show success dialog
+        JOptionPane.showMessageDialog(
+          this,
+          "Das neue Szenario wurde erfolgreich erstellt!",
+          "Szenario erstellt",
+          JOptionPane.INFORMATION_MESSAGE
+        );
+        
+        // Reload scenarios to include the new one
+        loadScenarios();
+        
+        logger.info("Scenario '{}' created successfully", newScenario.getScenarioId());
+      } else {
+        // Show error dialog
+        JOptionPane.showMessageDialog(
+          this,
+          "Das Szenario konnte nicht erstellt werden. Bitte versuchen Sie es erneut.",
+          "Fehler beim Erstellen",
+          JOptionPane.ERROR_MESSAGE
+        );
+      }
+      
+    } catch (Exception e) {
+      logger.error("Error creating scenario", e);
+      JOptionPane.showMessageDialog(
+        this,
+        "Fehler beim Erstellen des Szenarios: " + e.getMessage(),
+        "Fehler",
+        JOptionPane.ERROR_MESSAGE
+      );
+    }
+  }
+
+  /**
+   * Shows a custom dialog for creating a new scenario
+   * 
+   * @return ScenarioInputResult with user input, or null if cancelled
+   */
+  private ScenarioInputResult showCreateScenarioDialog() {
+    JPanel panel = new JPanel(new GridBagLayout());
+    GridBagConstraints gbc = new GridBagConstraints();
+    gbc.insets = new Insets(5, 5, 5, 5);
+    
+    // Scenario ID field
+    JLabel idLabel = new JLabel("Szenario-ID:");
+    gbc.gridx = 0;
+    gbc.gridy = 0;
+    gbc.anchor = GridBagConstraints.WEST;
+    panel.add(idLabel, gbc);
+    
+    JTextField idField = new JTextField(20);
+    gbc.gridx = 1;
+    gbc.gridy = 0;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
+    panel.add(idField, gbc);
+    
+    // Scenario Name field
+    JLabel nameLabel = new JLabel("Szenario-Name:");
+    gbc.gridx = 0;
+    gbc.gridy = 1;
+    gbc.fill = GridBagConstraints.NONE;
+    gbc.weightx = 0.0;
+    panel.add(nameLabel, gbc);
+    
+    JTextField nameField = new JTextField(20);
+    gbc.gridx = 1;
+    gbc.gridy = 1;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.weightx = 1.0;
+    panel.add(nameField, gbc);
+    
+    // Show dialog
+    int result = JOptionPane.showConfirmDialog(
       this,
-      "Create Scenario functionality will be implemented in a future version.",
-      "Create Scenario",
-      JOptionPane.INFORMATION_MESSAGE
+      panel,
+      "Neues Szenario erstellen",
+      JOptionPane.OK_CANCEL_OPTION,
+      JOptionPane.PLAIN_MESSAGE
     );
+    
+    if (result == JOptionPane.OK_OPTION) {
+      String scenarioId = idField.getText().trim();
+      String scenarioName = nameField.getText().trim();
+      
+      // Validate input
+      if (scenarioId.isEmpty() || scenarioName.isEmpty()) {
+        JOptionPane.showMessageDialog(
+          this,
+          "Bitte geben Sie sowohl eine Szenario-ID als auch einen Szenario-Namen ein.",
+          "Eingabe erforderlich",
+          JOptionPane.WARNING_MESSAGE
+        );
+        return null;
+      }
+      
+      return new ScenarioInputResult(scenarioId, scenarioName);
+    }
+    
+    return null; // User cancelled
+  }
+
+  /**
+   * Helper class to hold scenario input results
+   */
+  private static class ScenarioInputResult {
+    final String scenarioId;
+    final String scenarioName;
+    
+    ScenarioInputResult(String scenarioId, String scenarioName) {
+      this.scenarioId = scenarioId;
+      this.scenarioName = scenarioName;
+    }
   }
 
   private void onSaveConfigurationClicked() {
     try {
-      // TODO: Collect configuration from UI components
-      JOptionPane.showMessageDialog(this, "Configuration saved successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+      // Collect technical configuration from UI components
+      List<ConfigItem> technicalConfigItems = collectTechnicalConfigFromUI();
+      
+      if (technicalConfigItems.isEmpty()) {
+        JOptionPane.showMessageDialog(this, "No technical configuration to save.", "Info", JOptionPane.INFORMATION_MESSAGE);
+        return;
+      }
+      
+      // Save technical configuration
+      technicalConfigService.saveTechnicalConfig(technicalConfigItems);
+      
+      logger.info("Technical configuration saved successfully");
+      JOptionPane.showMessageDialog(this, "Technical configuration saved successfully!", "Success", JOptionPane.INFORMATION_MESSAGE);
+      
     } catch (Exception e) {
       logger.error("Error saving configuration", e);
       JOptionPane.showMessageDialog(this, "Failed to save configuration: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+    }
+  }
+
+  /**
+   * Collects the current technical configuration from UI components
+   * 
+   * @return List of ConfigItem objects with current values from UI
+   */
+  private List<ConfigItem> collectTechnicalConfigFromUI() {
+    List<ConfigItem> configItems = new ArrayList<>();
+    
+    for (Map.Entry<String, JComponent> entry : technicalConfigComponents.entrySet()) {
+      String name = entry.getKey();
+      JComponent component = entry.getValue();
+      
+      try {
+        ConfigItem item = createConfigItemFromComponent(name, component);
+        if (item != null) {
+          configItems.add(item);
+        }
+      } catch (Exception e) {
+        logger.warn("Error reading value for {}: {}", name, e.getMessage());
+      }
+    }
+    
+    return configItems;
+  }
+
+  /**
+   * Creates a ConfigItem from a UI component
+   * 
+   * @param name Component name (configuration parameter name)
+   * @param component UI component containing the value
+   * @return ConfigItem with current value from UI component
+   */
+  private ConfigItem createConfigItemFromComponent(String name, JComponent component) {
+    if (component instanceof JTextField) {
+      JTextField textField = (JTextField) component;
+      return new ConfigItem(name, "string", textField.getText(), null);
+      
+    } else if (component instanceof JPasswordField) {
+      JPasswordField passwordField = (JPasswordField) component;
+      char[] password = passwordField.getPassword();
+      String passwordValue = new String(password);
+      // Clear password from memory for security
+      java.util.Arrays.fill(password, ' ');
+      return new ConfigItem(name, "password", passwordValue, null);
+      
+    } else if (component instanceof JCheckBox) {
+      JCheckBox checkBox = (JCheckBox) component;
+      return new ConfigItem(name, "boolean", checkBox.isSelected(), null);
+      
+    } else {
+      logger.warn("Unknown component type for {}: {}", name, component.getClass().getSimpleName());
+      return null;
     }
   }
 
@@ -419,4 +611,4 @@ public class MRPConfigPanel extends JPanel {
       operationalConfigService.close();
     }
   }
-} 
+}

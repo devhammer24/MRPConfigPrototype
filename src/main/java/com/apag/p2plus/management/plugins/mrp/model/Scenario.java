@@ -52,4 +52,4 @@ public class Scenario {
   public int hashCode() {
     return scenarioId != null ? scenarioId.hashCode() : 0;
   }
-} 
+}

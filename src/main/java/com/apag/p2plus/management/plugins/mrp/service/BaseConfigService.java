@@ -22,10 +22,10 @@ public abstract class BaseConfigService<T> {
   protected final MRPConfigClient configClient;
 
   public BaseConfigService() {
-    // RESTEasy Client - Jackson wird automatisch erkannt
+    // RESTEasy Client - Jackson is automatically detected
     this.client = ClientBuilder.newBuilder().build();
     
-    // Proxy für die MRP Config API erstellen
+    // Create proxy for the MRP Config API
     ResteasyWebTarget target = (ResteasyWebTarget) client.target(BASE_URL);
     this.configClient = target.proxy(MRPConfigClient.class);
   }
@@ -91,4 +91,4 @@ public abstract class BaseConfigService<T> {
       }
     }
   }
-} 
+}
