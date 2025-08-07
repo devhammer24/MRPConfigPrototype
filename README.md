@@ -42,7 +42,6 @@ This application provides a graphical user interface for managing MRP configurat
 - **REST Client**: RESTEasy (JAX-RS Client Implementation)
 - **JSON Processing**: Jackson (automatically detected)
 - **Logging**: SLF4J with Logback implementation
-- **Testing**: JUnit 5 + Mockito
 - **Architecture**: Clean service-oriented architecture with dependency injection
 
 ## Project Structure
@@ -63,7 +62,6 @@ src/main/java/com/apag/p2plus/management/plugins/mrp/
 └── ui/
     └── MRPConfigPanel.java          # Main UI panel with dynamic form generation
 
-src/test/java/                       # Unit tests with JUnit 5 and Mockito
 src/main/resources/
 └── logback.xml                      # Logging configuration
 ```
@@ -81,20 +79,12 @@ src/main/resources/
 - **Jackson**: JSON serialization/deserialization (auto-detected)
 - **Jakarta WS-RS API**: JAX-RS standard annotations
 - **Logback**: Logging framework with advanced configuration
-- **JUnit 5**: Testing framework
-- **Mockito**: Mocking framework for tests
 - **Swing**: GUI framework (part of JDK)
 
 ### Build Project
 
 ```bash
 mvn clean compile
-```
-
-### Run Tests
-
-```bash
-mvn test
 ```
 
 ### Start Application
@@ -284,19 +274,6 @@ The application follows modern clean code principles:
 - **Extensibility**: New configuration types can be added easily
 - **Performance**: Asynchronous loading keeps UI responsive
 - **Reliability**: Fallback configurations ensure application always works
-
-## Testing
-
-The application includes comprehensive unit tests:
-
-- **Service Testing**: All services are tested with mocked dependencies
-- **Error Handling**: API failures and fallback scenarios are tested
-- **Async Operations**: CompletableFuture-based operations are properly tested
-
-Run tests with:
-```bash
-mvn test
-```
 
 ## Development
 
