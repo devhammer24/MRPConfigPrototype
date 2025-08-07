@@ -25,6 +25,16 @@ public class MRPConfigPanel extends JPanel {
 
   private static final Logger logger = LoggerFactory.getLogger(MRPConfigPanel.class);
   
+  // Dialog messages
+  private static final String SCENARIO_CREATED_SUCCESS = "The new scenario has been created successfully!";
+  private static final String SCENARIO_CREATED_TITLE = "Scenario Created";
+  private static final String SCENARIO_CREATION_ERROR = "The scenario could not be created. Please try again.";
+  private static final String SCENARIO_CREATION_ERROR_TITLE = "Creation Error";
+  private static final String SCENARIO_INPUT_VALIDATION = "Please enter both a Scenario ID and a Scenario Name.";
+  private static final String INPUT_REQUIRED_TITLE = "Input Required";
+  private static final String CREATE_SCENARIO_TITLE = "Create New Scenario";
+  private static final String ERROR_TITLE = "Error";
+  
   private final ScenarioService scenarioService;
   private final TechnicalConfigService technicalConfigService;
   private final OperationalConfigService operationalConfigService;
@@ -411,8 +421,8 @@ public class MRPConfigPanel extends JPanel {
         // Show success dialog
         JOptionPane.showMessageDialog(
           this,
-          "Das neue Szenario wurde erfolgreich erstellt!",
-          "Szenario erstellt",
+          SCENARIO_CREATED_SUCCESS,
+          SCENARIO_CREATED_TITLE,
           JOptionPane.INFORMATION_MESSAGE
         );
         
@@ -424,8 +434,8 @@ public class MRPConfigPanel extends JPanel {
         // Show error dialog
         JOptionPane.showMessageDialog(
           this,
-          "Das Szenario konnte nicht erstellt werden. Bitte versuchen Sie es erneut.",
-          "Fehler beim Erstellen",
+          SCENARIO_CREATION_ERROR,
+          SCENARIO_CREATION_ERROR_TITLE,
           JOptionPane.ERROR_MESSAGE
         );
       }
@@ -434,8 +444,8 @@ public class MRPConfigPanel extends JPanel {
       logger.error("Error creating scenario", e);
       JOptionPane.showMessageDialog(
         this,
-        "Fehler beim Erstellen des Szenarios: " + e.getMessage(),
-        "Fehler",
+        "Error creating scenario: " + e.getMessage(),
+        ERROR_TITLE,
         JOptionPane.ERROR_MESSAGE
       );
     }
@@ -452,7 +462,7 @@ public class MRPConfigPanel extends JPanel {
     gbc.insets = new Insets(5, 5, 5, 5);
     
     // Scenario ID field
-    JLabel idLabel = new JLabel("Szenario-ID:");
+    JLabel idLabel = new JLabel("Scenario ID:");
     gbc.gridx = 0;
     gbc.gridy = 0;
     gbc.anchor = GridBagConstraints.WEST;
@@ -466,7 +476,7 @@ public class MRPConfigPanel extends JPanel {
     panel.add(idField, gbc);
     
     // Scenario Name field
-    JLabel nameLabel = new JLabel("Szenario-Name:");
+    JLabel nameLabel = new JLabel("Scenario Name:");
     gbc.gridx = 0;
     gbc.gridy = 1;
     gbc.fill = GridBagConstraints.NONE;
@@ -484,7 +494,7 @@ public class MRPConfigPanel extends JPanel {
     int result = JOptionPane.showConfirmDialog(
       this,
       panel,
-      "Neues Szenario erstellen",
+      CREATE_SCENARIO_TITLE,
       JOptionPane.OK_CANCEL_OPTION,
       JOptionPane.PLAIN_MESSAGE
     );
@@ -497,8 +507,8 @@ public class MRPConfigPanel extends JPanel {
       if (scenarioId.isEmpty() || scenarioName.isEmpty()) {
         JOptionPane.showMessageDialog(
           this,
-          "Bitte geben Sie sowohl eine Szenario-ID als auch einen Szenario-Namen ein.",
-          "Eingabe erforderlich",
+          SCENARIO_INPUT_VALIDATION,
+          INPUT_REQUIRED_TITLE,
           JOptionPane.WARNING_MESSAGE
         );
         return null;

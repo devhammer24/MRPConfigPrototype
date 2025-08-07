@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Service for loading technical configuration
+ * Service for loading and saving technical configuration
  */
 public class TechnicalConfigService extends BaseConfigService<ConfigItem> {
 

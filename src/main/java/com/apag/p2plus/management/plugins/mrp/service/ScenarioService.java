@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Service for loading scenarios
+ * Service for loading and creating scenarios
  */
 public class ScenarioService extends BaseConfigService<Scenario> {
 
@@ -43,17 +43,18 @@ public class ScenarioService extends BaseConfigService<Scenario> {
   public boolean createScenario(Scenario scenario) {
     try {
       logger.info("Creating new scenario: {}", scenario.getScenarioId());
-      Response response = configClient.createScenario(scenario);
       
-      int statusCode = response.getStatus();
-      logger.info("Create scenario response status: {}", statusCode);
-      
-      if (statusCode == 201) {
-        logger.info("Scenario '{}' created successfully", scenario.getScenarioId());
-        return true;
-      } else {
-        logger.warn("Failed to create scenario '{}', status code: {}", scenario.getScenarioId(), statusCode);
-        return false;
+      try (Response response = configClient.createScenario(scenario)) {
+        int statusCode = response.getStatus();
+        logger.info("Create scenario response status: {}", statusCode);
+        
+        if (statusCode == 201) {
+          logger.info("Scenario '{}' created successfully", scenario.getScenarioId());
+          return true;
+        } else {
+          logger.warn("Failed to create scenario '{}', status code: {}", scenario.getScenarioId(), statusCode);
+          return false;
+        }
       }
       
     } catch (Exception e) {

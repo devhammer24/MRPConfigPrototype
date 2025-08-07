@@ -72,11 +72,12 @@ public abstract class BaseConfigService<T> {
   protected abstract List<T> createFallbackConfig();
 
   /**
-   * Saves configuration items
+   * Saves configuration items (default implementation - override in subclasses)
    */
   public void save(List<T> items) {
     logger.info("Saving {} configuration items", items.size());
-    // TODO: Implement save functionality when API supports it
+    // Default implementation - specific services should override this method
+    logger.warn("Save operation not implemented for this service type");
   }
 
   /**
